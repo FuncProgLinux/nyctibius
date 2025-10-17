@@ -1,0 +1,7 @@
+-pbp   # Use Perl's best practices
+-w     # I don't know if use v5.36 already covers this, just to be sure.
+-l=80  # 80x24 will always be 80x24
+-mbl=2 # No more than two blank lines
+-i=4   # Heretical indentation
+-ci=4  # Continuation indent is also heretical
+-nst   # No stdout

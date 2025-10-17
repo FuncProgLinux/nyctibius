@@ -1,0 +1,6 @@
+;; -*- mode: scheme; -*-
+
+(channel
+  (version 0)
+  (directory "channel")
+  (news-file "etc/news.txt"))

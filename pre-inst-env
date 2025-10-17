@@ -1,0 +1,162 @@
+#!/usr/bin/env perl
+#
+# pre-inst-env script written in pure standard perl. Documented for
+# Guix novices.
+
+use v5.36;
+use Cwd qw(realpath);
+use File::Basename qw(dirname);
+
+use Getopt::Long qw(GetOptions);
+use Pod::Usage;
+
+use utf8;
+use open qw( :std :encoding(UTF-8));
+
+our $VERSION = version->declare("v1.1.0");
+
+my $help = 0;
+
+GetOptions(
+  'help|?' => \$help
+) or pod2usage(2);
+
+pod2usage(-verbose => 2, -exitval => 0) if $help;
+
+my $script_dir = dirname(realpath(__FILE__));
+
+unless (-d $script_dir) {
+  die "Error: Unable to determine source directory.\n"
+}
+
+my $channel_path = "$script_dir/channel";
+
+unless (-d $channel_path) {
+    die "The channel directory doesn't exist...wait what!?\n"
+}
+
+local $ENV{GUILE_LOAD_PATH} = "$channel_path" . 
+  ($ENV{GUILE_LOAD_PATH} ? ":" . $ENV{GUILE_LOAD_PATH} : "");
+
+local $ENV{GUIX_PACKAGE_PATH} = "$channel_path" . 
+  ($ENV{GUIX_PACKAGE_PATH} ? ":" . $ENV{GUIX_PACKAGE_PATH} : "");
+
+if (!@ARGV) {
+    pod2usage(
+      -verbose => 1,
+      -exitval => 1,
+      -message => "Error: No command provided to execute.\n");
+}
+
+exec { $ARGV[0] } @ARGV
+    or die "An error happened while executing '$ARGV[0]': $!\n";
+
+__END__
+
+=encoding utf-8
+
+=head1 NAME
+
+pre-inst-env - A development environment launcher script.
+
+=head1 SYNOPSIS
+
+pre-inst-env [OPTIONS] <command> [args...]
+
+=head1 DESCRIPTION
+
+This script serves as a C<pre-installation environment> for Gnu Guix.
+Its primary function is to set up the necessary environment variables, 
+specifically C<GUILE_LOAD_PATH> and C<GUIX_PACKAGE_PATH>, to include a custom
+channel's main directory (set in the C<.guix-channel> file) before executing
+any subsequent command. By doing this, it ensures that Guix and Guile's
+interpreter can locate and use the custom package/service definitions provided
+by the channel. This is particularly useful for development, testing and
+pre-installation of packages defined within a foreign Guix channel.
+
+=head1 OPTIONS
+
+=over 4
+
+=item B<--help>
+
+Display this help message and exit.
+
+=back
+
+=head1 EXAMPLES
+
+=over
+
+=item Launch the Guix Package Manager with the custom channel
+
+C<./pre-inst-env guix build xed>: This command will launch guix build,
+ensuring that C<xed> which is defined in C<channel/guix-mate/packages/mint.scm>
+is found, loaded and built correctly.
+
+=back
+
+=head1 ENVIRONMENT VARIABLES
+
+=over
+
+=item C<GUILE_LOAD_PATH>
+
+This variable is prepended with the path of the custom channel's Guile modules.
+This allows Guile to find and load the necessary C<.scm> files.
+
+=item C<GUIX_PACKAGE_PATH>
+
+This variable is prepended with the path of the custom channel. This ensures
+Guix can locate the package/service definitions and other channel-related
+content.
+
+=back
+
+=head1 ERRORS & EXIT STATUSES
+
+The script exits with a non-zero status code if:
+
+=over
+
+=item - It cannot determine the script's directory path.
+
+=item - A command to execute is not provided.
+
+=item  - The command fails to execute.
+
+=item  - The channel directory is gone (has happened, don't ask)
+
+=back
+
+=head1 BUGS
+
+Please report any bugs or issues using the repository's bug tracker. The most
+likely causes for malfunctions are:
+
+=over
+
+=item The .guix-channel file is missing or has an incorrect path
+
+=item Permission issues on both the script and the channel directory
+
+=back
+
+=head1 AUTHOR & COPYING
+
+Urutaú Limited <softwarelibre@urutau-ltd.org>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+=cut

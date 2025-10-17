@@ -1,0 +1,25 @@
+severity = 4
+
+[TestingAndDebugging::RequireUseStrict]
+severity = 5
+
+[InputOutput::ProhibitBacktickOperators]
+only_in_void_context = 1
+severity = 4
+
+[InputOutput::ProhibitBarewordFileHandles]
+[InputOutput::ProhibitTwoArgOpen]
+
+[Subroutines::ProhibitExcessComplexity]
+
+[InputOutput::RequireBriefOpen]
+lines = 10
+
+[Documentation::RequirePodSections]
+lib_sections = NAME | SYNOPSIS | DESCRIPTION | AUTHOR & COPYING
+
+# Excluded rules
+[-Subroutines::ProhibitSubroutinePrototypes]
+  # Perl v5.36 stabilized these. This warning is useless for our use-case.
+[-TestingAndDebugging::RequireUseWarnings]
+  # Perl v5.36 already enables warnings by default

@@ -1,0 +1,33 @@
+# -*- mode: makefile-gmake; -*-
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2024-2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+# The location of the manifest file for this project
+DEV_ENV_MANIFEST="manifest.scm"
+
+.PHONY: nrepl
+nrepl: ## Starts nrepl-server for Emacs Arei
+	@echo "==> [NYCTIBIUS/DEV]: Starting NREPL for Arei to listen..."
+	@guix shell -D guile-next guile-ares-rs --container -- \
+	guile -L ./channel -c '((@ (ares server) run-nrepl-server))'
+
+repl: ## Starts a new guix repl
+	@echo "==> [NYCTIBIUS/DEV]: Starting Guix REPL!"
+	./pre-inst-env -- guix repl -L ./channel --listen=tcp:37146
+
+dev: ## Starts a development guix shell for this channel
+	@echo "==> [NYCTIBIUS/DEV]: Spinning up a development environment..."
+	@guix shell -m $(DEV_ENV_MANIFEST)
