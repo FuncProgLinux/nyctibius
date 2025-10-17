@@ -145,7 +145,7 @@ TARGET-LINE-NO in PORT."
                           ;; definitions.
                           "--unified=1"
                           "--"
-                          "channel/guix-mate")))
+                          "channel/nyctibius")))
     (define (extract-line-number line-tag)
       (abs (string->number (car (string-split line-tag #\,)))))
     (define (read-hunk)
@@ -292,7 +292,7 @@ corresponding to the top-level definition containing the staged changes."
                                                  (*any*) package version *any*)))
             (cons '*TOP* new)) first))
   (format port
-          "guix-mate: ~a: Update to ~a.~%~%* ~a (~a): Update to ~a.~%"
+          "nyctibius: ~a: Update to ~a.~%~%* ~a (~a): Update to ~a.~%"
           variable-name
           version
           file-name
@@ -326,14 +326,14 @@ corresponding to the top-level definition containing the staged changes."
                              #:optional (port (current-output-port)))
   "Print ChangeLog commit message for a change to FILE-NAME adding a
 definition."
-  (format port "guix-mate: Add ~a.~%~%* ~a (~a): New variable.~%"
+  (format port "nyctibius: Add ~a.~%~%* ~a (~a): New variable.~%"
           variable-name file-name variable-name))
 
 (define* (remove-commit-message file-name variable-name
                                 #:optional (port (current-output-port)))
   "Print ChangeLog commit message for a change to FILE-NAME removing a
 definition."
-  (format port "guix-mate: Remove ~a.~%~%* ~a (~a): Delete variable.~%"
+  (format port "nyctibius: Remove ~a.~%~%* ~a (~a): Delete variable.~%"
           variable-name file-name variable-name))
 
 (define* (custom-commit-message file-name
