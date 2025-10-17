@@ -14,6 +14,12 @@ GitHub.
 
 Organization members can refer the original forge for the usage snippet.
 
+The channel contains the following software
+
+- Missing GNU Emacs packages
+- Latest FreeFem builds
+- Some InfoSec tools
+
 ## COPYING
 
 The source code available on this channel, except where stated otherwise is
