@@ -1,0 +1,157 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright © 2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+#
+#   , _ ,      _    _            _                     _ _      _
+#  ( o o )    | |  | |          | |                   | | |    | |
+# /'` ' `'\   | |  | |_ __ _   _| |_ __ _ _   _ ______| | |_ __| |
+# |'''''''|   | |  | | '__| | | | __/ _` | | | |______| | __/ _` |
+# |\\'''//|   | |__| | |  | |_| | || (_| | |_| |      | | || (_| |
+#    """       \____/|_|   \__,_|\__\__,_|\__,_|      |_|\__\__,_|
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+set -euo pipefail
+IFS=$'\n\t'
+
+readonly TUTA_FILENAME='tutanota-desktop-linux.AppImage'
+readonly TUTA_URL="https://app.tuta.com/desktop/${TUTA_FILENAME}"
+readonly TUTA_DIR="${HOME}/.local/sbin"
+readonly TUTA_PATH="${TUTA_DIR}/${TUTA_FILENAME}"
+
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[0;33m'
+readonly BLUE='\033[0;34m'
+readonly RESET='\033[0m'
+DEBUG_MODE=0
+FORCE_DOWNLOAD=0
+
+readonly USER_ID=$(id -u)
+readonly USERBUS="/run/user/$USER_ID/bus"
+
+function _log() {
+    local -r color="$1"
+    local -r message="$2"
+    printf "${color}===> %s${RESET}\n" "$message" >&2
+}
+
+function _info() { _log "$GREEN" "$*"; }
+function _warn() { _log "$YELLOW" "WARN: $*"; }
+function _error() { _log "$RED" "FATAL: $*"; exit 1; }
+function _debug() {
+    if [[ "${DEBUG_MODE}" -eq 1 ]]; then
+        _log "$BLUE" "DEBUG: $*"
+    fi
+}
+
+function _usage() {
+    cat <<EOF >&2
+    tuta
+    
+    GNU Bash script to ease the use of Tuta inside GNU Guix with FHS containers
+
+    Usage: ${0##*/} [-dhv]
+
+    Options:
+        -d | --download  Force the AppImage download even if it already exists.
+        -v | --verbose   Enable verbose output mode.
+        -h | --help      Print this help screen.
+    
+EOF
+    exit 0
+}
+
+while getopts 'dvhe' opt; do
+    case "$opt" in
+        d) FORCE_DOWNLOAD=1 ;;
+        v) DEBUG_MODE=1 ;;
+        h) _usage ;;
+        *) _error "Unknown option -$OPTARG. Use --help for guidance."
+    esac
+done
+
+shift $((OPTIND-1))
+
+for arg in "$@"; do
+           case "$arg" in
+               --download) FORCE_DOWNLOAD=1; shift ;;
+               --verbose) DEBUG_MODE=1; shift ;;
+               --help) _usage; shift;;
+               *)
+                   if [[ "$arg" != -* ]]; then
+                       _warn "Ignored arg: $arg!";
+                   else
+                       _error "Unknown long-opt: $arg!"
+                   fi
+                   shift
+                   ;;
+           esac
+done
+
+function _prepare_appimage() {
+    _debug "Preparing AppImage environment."
+    mkdir -p "$TUTA_DIR" || _error "Unable to mkdir: ${TUTA_DIR}"
+
+    if [[ ! -f "$TUTA_PATH" ]] || [[ "$FORCE_DOWNLOAD" -eq 1 ]]; then
+        if [[ ! -f "$TUTA_PATH" ]]; then
+            _info "AppImage not found. Downloading from tuta.com..."
+        else
+            _warn "Downloading by force!"
+        fi
+
+        if curl -L --progress-bar -o "$TUTA_PATH" "$TUTA_URL"; then
+            _info "Download successful. Validating permissions..."
+            chmod +x "$TUTA_PATH" || _error "(chmod +x) failed to grant permissions to Tuta AppImage!"
+            _info "Permissions: (755) granted to AppImage."
+        else
+            _error "Failed to download Tuta from: ${TUTA_URL}."
+        fi
+    else
+        _info "Tuta AppImage found at: ${TUTA_PATH}. No download is required!"
+    fi
+}
+
+function _execute_guix() {
+    _info "Invoking a new Guix FHS container..."
+    _debug "Exposed directory for container: ${TUTA_DIR}"
+    _debug "Running with user d-bus at: $USERBUS"
+
+    setsid guix shell --container --network --emulate-fhs \
+        --development ungoogled-chromium gcc-toolchain libsecret \
+        --preserve='^DISPLAY$' \
+        --preserve='^XAUTHORITY$' --expose="$XAUTHORITY" \
+        --preserve='^DBUS_' --expose='/var/run/dbus' \
+        --expose='/sys/dev' --expose='/sys/devices' --expose="$USERBUS" --expose='/dev/dri' \
+        --expose="$TUTA_DIR" \
+        -- \
+        "$TUTA_PATH" --appimage-extract-and-run > /dev/null 2>&1 &
+
+    local PID=$!
+    _info "Tuta started at PID: ${PID}. Process has been detached (setsid)."
+    disown -h "%${PID}" 2>/dev/null || true
+}
+
+function _main() {
+    _debug "Debug mode is enabled!."
+    _info "Starting Tuta service."
+
+    _prepare_appimage
+
+    _execute_guix
+
+    _info "Guix shell container with Tuta is up and running!"
+}
+
+_main
