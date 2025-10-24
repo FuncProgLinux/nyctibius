@@ -29,6 +29,7 @@ readonly TUTA_FILENAME='tutanota-desktop-linux.AppImage'
 readonly TUTA_URL="https://app.tuta.com/desktop/${TUTA_FILENAME}"
 readonly TUTA_DIR="${HOME}/.local/sbin"
 readonly TUTA_PATH="${TUTA_DIR}/${TUTA_FILENAME}"
+readonly TUTA_DESKTOP="${XDG_DATA_HOME:-$HOME/.local/share}/applications/tutanota-desktop.desktop"
 
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
@@ -37,6 +38,7 @@ readonly BLUE='\033[0;34m'
 readonly RESET='\033[0m'
 DEBUG_MODE=0
 FORCE_DOWNLOAD=0
+CHECK_MODE=0
 
 readonly USER_ID=$(id -u)
 readonly USERBUS="/run/user/$USER_ID/bus"
@@ -50,6 +52,7 @@ function _log() {
 function _info() { _log "$GREEN" "$*"; }
 function _warn() { _log "$YELLOW" "WARN: $*"; }
 function _error() { _log "$RED" "FATAL: $*"; exit 1; }
+function _check() { _log "$BLUE" "CHECK: $*"; }
 function _debug() {
     if [[ "${DEBUG_MODE}" -eq 1 ]]; then
         _log "$BLUE" "DEBUG: $*"
@@ -61,43 +64,29 @@ function _usage() {
     tuta
     
     GNU Bash script to ease the use of Tuta inside GNU Guix with FHS containers
+    long options are NOT supported
 
     Usage: ${0##*/} [-dhv]
 
     Options:
-        -d | --download  Force the AppImage download even if it already exists.
-        -v | --verbose   Enable verbose output mode.
-        -h | --help      Print this help screen.
+        -d    Force the AppImage download even if it already exists.
+        -c    Check the current installation status.
+        -v    Enable verbose output mode.
+        -h    Print this help screen.
     
 EOF
     exit 0
 }
 
-while getopts 'dvhe' opt; do
+while getopts ':dvhc' opt; do
     case "$opt" in
         d) FORCE_DOWNLOAD=1 ;;
         v) DEBUG_MODE=1 ;;
+        c) CHECK_MODE=1 ;;
         h) _usage ;;
-        *) _error "Unknown option -$OPTARG. Use --help for guidance."
+        ?) _error "Unknown option -$OPTARG. Use -h or --help for guidance." ;;
+        *) _error "How did you get here!?" ;;
     esac
-done
-
-shift $((OPTIND-1))
-
-for arg in "$@"; do
-           case "$arg" in
-               --download) FORCE_DOWNLOAD=1; shift ;;
-               --verbose) DEBUG_MODE=1; shift ;;
-               --help) _usage; shift;;
-               *)
-                   if [[ "$arg" != -* ]]; then
-                       _warn "Ignored arg: $arg!";
-                   else
-                       _error "Unknown long-opt: $arg!"
-                   fi
-                   shift
-                   ;;
-           esac
 done
 
 function _prepare_appimage() {
@@ -111,11 +100,13 @@ function _prepare_appimage() {
             _warn "Downloading by force!"
         fi
 
-        if curl -L --progress-bar -o "$TUTA_PATH" "$TUTA_URL"; then
+        if curl -fL -o "$TUTA_PATH" "$TUTA_URL"; then
             _info "Download successful. Validating permissions..."
             chmod +x "$TUTA_PATH" || _error "(chmod +x) failed to grant permissions to Tuta AppImage!"
             _info "Permissions: (755) granted to AppImage."
         else
+            _warn "Download failed. Removing potentially corrupted file: ${TUTA_PATH}"
+            rm -f "$TUTA_PATH"
             _error "Failed to download Tuta from: ${TUTA_URL}."
         fi
     else
@@ -125,16 +116,35 @@ function _prepare_appimage() {
 
 function _execute_guix() {
     _info "Invoking a new Guix FHS container..."
-    _debug "Exposed directory for container: ${TUTA_DIR}"
+    
+    local GUIX_EXPOSE_DESKTOP=""
+    
+    if [[ -f "$TUTA_DESKTOP" ]]; then
+        _info "Patched desktop file found at ${TUTA_DESKTOP}. Exposing to shell..."
+        GUIX_EXPOSE_DESKTOP="--expose=${TUTA_DESKTOP}"
+    else
+        _warn "Tuta desktop file NOT found at ${TUTA_DESKTOP}"
+        _warn "The AppImage will keep spamming the 'desktop integration' dialog until it finds this file!"
+        _warn "Omitting --expose for desktop file"
+    fi
+    
+    _debug "Exposed directory for AppImage: ${TUTA_DIR}"
+    _debug "Exposed .desktop argument: ${GUIX_EXPOSE_DESKTOP}"
     _debug "Running with user d-bus at: $USERBUS"
 
     setsid guix shell --container --network --emulate-fhs \
         --development ungoogled-chromium gcc-toolchain libsecret \
         --preserve='^DISPLAY$' \
-        --preserve='^XAUTHORITY$' --expose="$XAUTHORITY" \
-        --preserve='^DBUS_' --expose='/var/run/dbus' \
-        --expose='/sys/dev' --expose='/sys/devices' --expose="$USERBUS" --expose='/dev/dri' \
+        --preserve='^XAUTHORITY$' \
+        --expose="$XAUTHORITY" \
+        --preserve='^DBUS_' \
+        --expose='/var/run/dbus' \
+        --expose='/sys/dev' \
+        --expose='/sys/devices' \
+        --expose="$USERBUS" \
+        --expose='/dev/dri' \
         --expose="$TUTA_DIR" \
+        "$GUIX_EXPOSE_DESKTOP" \
         -- \
         "$TUTA_PATH" --appimage-extract-and-run > /dev/null 2>&1 &
 
@@ -143,8 +153,81 @@ function _execute_guix() {
     disown -h "%${PID}" 2>/dev/null || true
 }
 
+function _check_install() {
+    _check "Checking script dependencies..."
+    
+    if command -v curl &> /dev/null; then
+        _info "✓ curl is available"
+    else
+        _error "✗ curl is unavailable. (Required for downloading AppImage)"
+    fi
+    
+    if ! command -v guix &> /dev/null; then
+        _error "✗ This script is for GNU Guix systems only!"
+        exit 1
+    fi
+    
+    _check "Checking files and directories..."
+    
+    if [[ -d "$TUTA_DIR" ]]; then
+        _info "✓ Target dir: $TUTA_DIR exists on this user's home"
+    else
+        _warn "✗ Target dir: $TUTA_DIR is unavailable. It will be created at runtime"
+    fi
+
+    _check "AppImage file: $TUTA_PATH"
+    
+    if [[ -f "$TUTA_PATH" ]]; then
+         _info  "✓ AppImage was found at this user's home"
+         
+         if [[ -x "$TUTA_PATH" ]]; then
+             _info  "✓ Tuta AppImage is executable"
+         else
+             _warn "✗ Tuta AppImage lacks neccessary permissions"
+         fi 
+
+         local SIZE
+         SIZE=$(du -h "$TUTA_PATH" | awk '{print $1}')
+         _info "AppImage size: $SIZE"
+    else
+        _warn "✗ Tuta AppImage was not found. Will be downloaded at runtime"
+    fi
+
+    _check ".desktop launcher: $TUTA_DESKTOP"
+    
+    if [[ -f "$TUTA_DESKTOP" ]]; then
+         _info  "✓ Desktop launcher found. A --expose= arg will be added to the run command"
+    else
+        _warn "✗ Desktop launcher not found, Tuta might nag you with a popup when starting"
+        _info "The --expose= arg for the desktop launcher will be omitted on the run command"
+    fi
+
+    _check "Checking D-Bus & Xserver..."
+
+    if [[ -S "$USERBUS" ]]; then
+        _info "✓ D-Bus (User): Active socket found at $USERBUS."
+    else
+        _warn "✗ D-Bus (User): Unable to find a user dbus socket. The app MIGHT not work!"
+    fi
+    
+    if [[ -n "${DISPLAY:-}" ]]; then
+        _info "✓ DISPLAY: ${DISPLAY} (Xserver display found)."
+    else
+        _warn "✗ DISPLAY: Not set. Tuta won't show or launch if it lacks a display"
+    fi
+
+    _check "--- END OF STATE CHECKING, EXITING ---"
+    exit 0
+
+}
+
 function _main() {
     _debug "Debug mode is enabled!."
+    
+    if [[ "${CHECK_MODE}" -eq 1 ]]; then
+        _check_install
+    fi
+
     _info "Starting Tuta service."
 
     _prepare_appimage

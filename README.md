@@ -12,13 +12,18 @@ GitHub.
 
 ## Usage
 
-Organization members can refer the original forge for the usage snippet.
+Organization members can refer the original forge's Wiki for the usage snippet.
+
+The same goes for bug reports and package requests.
+
+## Software here
 
 The channel contains the following software
 
 - Missing GNU Emacs packages
 - Latest FreeFem builds
 - Some InfoSec tools
+- Services for desktops
 
 ## COPYING
 
