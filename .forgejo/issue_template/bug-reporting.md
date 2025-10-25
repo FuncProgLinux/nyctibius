@@ -1,9 +1,9 @@
 ---
-name: 'Bug Reporting'
-about: 'Use this form to report a bug on this channel.'
-title: 'Bug: '
-ref: ''
-labels: 'bug'
+name: "Bug Reporting"
+about: "Use this form to report a bug on this channel."
+title: "Bug: "
+ref: ""
+labels: "bug"
 ---
 
 <!--
@@ -15,5 +15,4 @@ Describe your bug below
 > Paste only the `nyctibius` channel section
 
 ```text
-
 ```
