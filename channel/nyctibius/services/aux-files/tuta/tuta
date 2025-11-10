@@ -25,17 +25,54 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+readonly SCRIPT_VERSION="v1.0.0"
+
+# Represents the AppImage file to be downloaded from the
+# network
 readonly TUTA_FILENAME='tutanota-desktop-linux.AppImage'
+
+# Represents the URL where the AppImage file can be downloaded
 readonly TUTA_URL="https://app.tuta.com/desktop/${TUTA_FILENAME}"
+
+# Represents the place where the AppImage file is going to be saved
+# after downloading it
 readonly TUTA_DIR="${HOME}/.local/sbin"
+
+# Represents the whole path to the downloaded AppImage
 readonly TUTA_PATH="${TUTA_DIR}/${TUTA_FILENAME}"
+
+# Represents the .desktop file path, this is used for most desktop environments
+# to list the application as usable. However, some desktop environments don't
+# recognize these files if they are symlinks or if the Exec= directive is
+# a symlink itself
 readonly TUTA_DESKTOP="${XDG_DATA_HOME:-$HOME/.local/share}/applications/tutanota-desktop.desktop"
 
+# Represents the configuration directory for the Tuta App. The AppImage searches
+# and writes to this location various chrome-related files
+readonly TUTA_CONF="${XDG_CONFIG_HOME:-$HOME/.config}/tutanota-desktop/"
+
+# Represents the integration path which is a text file with the path to
+# the downloaded AppImage
+readonly TUTA_INTEGRATION="${XDG_CONFIG_HOME:-$HOME/.config}/tuta_integration"
+
+# Related to TUTA_INTEGRATION. This points to the file itself.
+readonly TUTA_INTEGRATION_FILE="${TUTA_INTEGRATION}/no_integration"
+
+# The directory where the logs of this script will be stored. This is used to
+# track down errors that happen inside the Guix Shell command.
+readonly LOG_DIR="$HOME/.var/guix-tuta"
+
+# Related to LOG_DIR. It's the log file itself.
+readonly LOG_FILE="${LOG_DIR}/tuta-guix-launcher.log"
+
+# BEGIN COLOR CODES
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[0;33m'
 readonly BLUE='\033[0;34m'
 readonly RESET='\033[0m'
+# END COLOR CODES
+
 DEBUG_MODE=0
 FORCE_DOWNLOAD=0
 CHECK_MODE=0
@@ -61,7 +98,7 @@ function _debug() {
 
 function _usage() {
     cat <<EOF >&2
-    tuta
+    tuta - $SCRIPT_VERSION
     
     GNU Bash script to ease the use of Tuta inside GNU Guix with FHS containers
     long options are NOT supported
@@ -91,7 +128,29 @@ done
 
 function _prepare_appimage() {
     _debug "Preparing AppImage environment."
-    mkdir -p "$TUTA_DIR" || _error "Unable to mkdir: ${TUTA_DIR}"
+    
+    local REQUIRED_DIRS=(
+        "$TUTA_DIR"
+        "$TUTA_CONF"
+        "$LOG_DIR"
+        "$TUTA_INTEGRATION"
+    )
+   
+    for dir in "${REQUIRED_DIRS[@]}"; do
+        if [[ ! -d "$dir" ]]; then
+            _warn "Required directory at ${dir} wasn't found! Creating it..."
+        fi
+    done
+
+    if [[ -d "$TUTA_INTEGRATION" ]]; then
+        if [[ ! -f "$TUTA_INTEGRATION_FILE" ]]; then
+            _warn "Tuta integration is not disabled! Disabling it for you..."
+            touch "$TUTA_INTEGRATION_FILE"
+            echo "$TUTA_PATH" >> "$TUTA_INTEGRATION_FILE"
+        else
+             _info "Tuta integration is disabled! (This is OK)"
+        fi
+    fi
 
     if [[ ! -f "$TUTA_PATH" ]] || [[ "$FORCE_DOWNLOAD" -eq 1 ]]; then
         if [[ ! -f "$TUTA_PATH" ]]; then
@@ -111,6 +170,13 @@ function _prepare_appimage() {
         fi
     else
         _info "Tuta AppImage found at: ${TUTA_PATH}. No download is required!"
+        if [[ ! -x "$TUTA_PATH" ]]; then
+            _warn "Tuta AppImage found but is NOT executable. Granting permissions..."
+            chmod +x "$TUTA_PATH" || _error "(chmod +x) failed to grant permissions to existing Tuta AppImage!"
+            _info "Permissions: (755) granted to existing AppImage."
+        else
+            _info "Tuta AppImage is already executable. Ready to run."
+        fi
     fi
 }
 
@@ -144,9 +210,12 @@ function _execute_guix() {
         --expose="$USERBUS" \
         --expose='/dev/dri' \
         --expose="$TUTA_DIR" \
+        --share="$TUTA_CONF" \
+        --expose="$TUTA_INTEGRATION" \
+        --expose="$TUTA_INTEGRATION_FILE" \
         "$GUIX_EXPOSE_DESKTOP" \
         -- \
-        "$TUTA_PATH" --appimage-extract-and-run > /dev/null 2>&1 &
+        "$TUTA_PATH" --appimage-extract-and-run > "$LOG_FILE" 2>&1 &
 
     local PID=$!
     _info "Tuta started at PID: ${PID}. Process has been detached (setsid)."
