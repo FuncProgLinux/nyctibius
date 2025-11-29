@@ -1,4 +1,4 @@
-# Nyctibius
+# Nyctibius Griseus
 
 Guix channel with personal software needs.
 
@@ -9,6 +9,14 @@ use and nothing more.
 PR's and Issues are ignored on the Read-Only mirror forges, thus, you are on
 your own if you install this channel from one of either Codeberg or Mocosoft
 GitHub.
+
+## News
+
+> [!IMPORTANT]
+> Starting from Dec 1. This channel will merge with the Guix MATE channel, and
+> package development will continue from here. This is to focus on a single
+> channel and be fast with updates on other tools.
+
 
 ## Usage
 
