@@ -25,7 +25,7 @@
      (origin
        (method git-fetch)
        (uri (git-reference
-             (url "https://codeberg.org/guix-mate/brisk-menu-guix")
+             (url "https://codeberg.org/urutau-ltd/brisk-menu-guix")
              (recursive? #t)
              (commit "v0.6.4")))
        (file-name (git-file-name name version))
