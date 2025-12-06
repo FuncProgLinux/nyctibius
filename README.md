@@ -19,7 +19,7 @@ GitHub.
 >
 > If you still wish to rely on the MATE software available, install this channel
 > and replace all your `use-modules` or `#:use-module` from `(guix-mate packages
-> something) to (nyctibius packages something)
+> something)` to `(nyctibius packages something)`
 
 ## Usage
 
@@ -44,15 +44,31 @@ Fine, but don't say I didn't warn you...
                         (getenv "HOME") "/src/nyctibius")))
 ```
 
-## Software here
+## Features
 
-The channel contains the following software
+The channel contains the following goodies
 
-- Latest MATE Desktop packages
-- Missing GNU Emacs packages
-- Latest FreeFem builds
-- Some InfoSec tools
-- Services for desktops
+### Latest MATE Desktop builds
+
+Where possible I try to keep and maintain MATE Desktop software up to date
+and usable in this channel as this is for daily driving. You'll find here
+some missing components from GUIX:
+
+- `caja-actions`
+- `mate-tweak`
+- `brisk-menu`
+- `ayatana` indicator libraries
+- Linux Mint Icons
+
+### FreeFem Builds
+
+I don't really update much or use this but I hope I can fix the build reproducibility
+issues and package this as a `.appimage` soon.
+
+### InfoSec Tools
+
+Some InfoSec tools. Use at your own risk. I do not claim any responsibility for
+what you do with them.
 
 ## COPYING
 
