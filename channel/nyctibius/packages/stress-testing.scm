@@ -35,6 +35,7 @@
     #:use-module (gnu packages golang-build)
     #:use-module (gnu packages golang-web)
     #:use-module (gnu packages golang-xyz)
+    #:use-module (gnu packages prometheus)
     #:use-module (nyctibius packages golang-xyz))
 
 (define-public vegeta
