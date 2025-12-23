@@ -545,11 +545,57 @@ across networks on the MATE Desktop. If the file-sharing option is enabled
 it will expose the user's $HOME/Public directory on a webdav server.")
     (license license:gpl2+)))
 
-(define-public mate-menus-1.28.0-1
+(define-public mate-menus-1.28.1
   (package
-    (inherit mate-menus)
-    (inputs (modify-inputs (package-inputs mate)
-              (replace "python" python)))))
+    (name "mate-menus")
+    (version "1.28.1")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/mate-desktop/mate-menus")
+             (commit (string-append "v" version))
+             (recursive? #t)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "17pyrp8v9vfwh9r20a4jccxmcw68kj76v9fjr0kcqxhpzc63s1qq"))))
+    (build-system gnu-build-system)
+    (arguments
+     `(#:phases (modify-phases %standard-phases
+                  (add-after 'unpack 'fix-introspection-install-dir
+                    (lambda* (#:key outputs #:allow-other-keys)
+                      (let ((out (assoc-ref outputs "out")))
+                        (setenv "ACLOCAL_FLAGS"
+                                (string-join (map (lambda (s)
+                                                    (string-append "-I " s))
+                                                  (string-split (getenv
+                                                                 "ACLOCAL_PATH")
+                                                                #\:)) " "))
+                        (setenv "NOCONFIGURE" "yes")
+                        (invoke "bash" "autogen.sh")
+                        (substitute* '("configure")
+                          (("`\\$PKG_CONFIG --variable=girdir gobject-introspection-1.0`")
+                           (string-append "\"" out "/share/gir-1.0/\""))
+                          (("\\$\\(\\$PKG_CONFIG --variable=typelibdir gobject-introspection-1.0\\)")
+                           (string-append out "/lib/girepository-1.0/"))) #t))))))
+    (native-inputs (list autoconf
+                         autoconf-archive
+                         automake
+                         pkg-config
+                         intltool
+                         itstool
+                         libtool
+                         gobject-introspection
+                         mate-common
+                         which))
+    (inputs (list glib python))
+    (home-page "https://mate-desktop.org/")
+    (synopsis "Freedesktop menu specification implementation for MATE")
+    (description
+     "The package contains an implementation of the freedesktop menu
+specification, the MATE menu layout configuration files, .directory files and
+assorted menu related utility programs.")
+    (license (list license:gpl2+ license:lgpl2.0+))))
 
 (define-public mate-polkit-1.28.1-1
   (package
