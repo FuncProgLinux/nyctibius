@@ -15,6 +15,7 @@
   #:use-module (gnu packages mate)
   #:use-module (gnu packages pkg-config)
   #:use-module (gnu packages xml)
+  #:use-module (nyctibius packages mate)
   #:use-module (gnu packages xorg))
 
 (define-public brisk-menu
@@ -56,7 +57,7 @@
                   libx11
                   mate-desktop
                   mate-panel
-                  mate-menus
+                  mate-menus-1.28.1
                   libnotify
                   pango))
     (home-page "https://codeberg.org/guix-mate/brisk-menu-guix")

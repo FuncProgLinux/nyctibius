@@ -182,7 +182,7 @@
                   libxrandr
                   libwnck-next
                   mate-desktop
-                  mate-menus
+                  mate-menus-1.28.1
                   pango
                   tzdata
                   wayland))
@@ -250,7 +250,7 @@ infamous 'Wanda the Fish'.")
                   libxml2
                   libwnck
                   mate-desktop
-                  mate-menus
+                  mate-menus-1.28.1
                   mate-panel
                   pango
                   polkit ;either polkit or setuid
@@ -717,7 +717,7 @@ for the MATE desktop environment.")
                          (replace "atril" atril-1.28.2)
                          (replace "mate-panel" mate-panel-1.28.7)
                          (replace "mate-polkit" mate-polkit-1.28.1-1)
-                         (replace "mate-menus" mate-menus-1.28.0-1)
+                         (replace "mate-menus" mate-menus-1.28.1)
                          (replace "mate-power-manager"
                                   mate-power-manager-1.28.1-1)
                          (replace "libmateweather" libmateweather-1.28.1)
