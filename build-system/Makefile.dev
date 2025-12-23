@@ -18,6 +18,12 @@
 # The location of the manifest file for this project
 DEV_ENV_MANIFEST="manifest.scm"
 
+# Remotes to push releases to
+REMOTES = origin ro-mirror1 ro-mirror2
+
+# Date based tag generation
+TAG := $(shell date +%Y.%m.%d-%H%M)
+
 .PHONY: nrepl
 nrepl: ## Starts nrepl-server for Emacs Arei
 	@echo "==> [NYCTIBIUS/DEV]: Starting NREPL for Arei to listen..."
@@ -31,3 +37,16 @@ repl: ## Starts a new guix repl
 dev: ## Starts a development guix shell for this channel
 	@echo "==> [NYCTIBIUS/DEV]: Spinning up a development environment..."
 	@guix shell -m $(DEV_ENV_MANIFEST)
+
+release: ## Creates a new git tag for this channel
+	@echo "==> [NYCTIBIUS/DEV]: Creating new release tag: $(TAG)"
+	git tag -a $(TAG) -m "Nyctibius revision $(TAG)"
+	@$(MAKE) push-tags TAG=$(TAG)
+
+push-tags: ## Runs git push against all remotes
+	@echo "==> [NYCTIBIUS/DEV]: Uploading tags to remotes"
+	@for remote in $(REMOTES); do \
+		echo "Pushing to $$remote..."; \
+		git push $$remote $(TAG) || echo "Error pushing to $$remote"; \
+	done
+	@echo "==> [NYCTIBIUS/DEV]: Uploaded tags to remotes..."
