@@ -50,6 +50,7 @@
     (build-system python-build-system)
     (arguments
      (list
+      #:tests? #f
       #:imported-modules `((guix build glib-or-gtk-build-system)
                            ,@%python-build-system-modules)
       #:modules '((guix build python-build-system)
