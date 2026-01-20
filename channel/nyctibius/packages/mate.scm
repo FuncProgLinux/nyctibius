@@ -297,31 +297,46 @@ Interactive Weather Information Network (IWIN).
     (version "1.28.0")
     (source
      (origin
-       (method url-fetch)
-       (uri (string-append "mirror://mate/"
-                           (version-major+minor version)
-                           "/"
-                           "caja-actions-"
-                           version
-                           ".tar.xz"))
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/mate-desktop/caja-actions")
+             (commit (string-append "v" version))
+             (recursive? #t)))
+       (file-name (git-file-name name version))
        (sha256
-        (base32 "0kga1dfv6kcyyidgzbnxvyc48kqmnq0ai82ri62aszvhir43j39i"))))
+        (base32 "1a21kz5796prdq88a3yjc8jnd6qv8jg5zji43m057ra46qjbjazf"))))
     (build-system glib-or-gtk-build-system)
     (arguments
      (list
       #:configure-flags
       #~(list (string-append "--with-caja-extdir="
                              #$output "/lib/caja/extensions-2.0/"
-                             "--disable-static"))))
-    (native-inputs (list gettext-minimal
+                             "--disable-static"
+                             "--enable-html-manuals"))
+      #:phases
+      #~(modify-phases %standard-phases
+          (add-after 'unpack 'preconfigure
+            (lambda _
+              (setenv "ACLOCAL_FLAGS"
+                      (string-join (map (lambda (s)
+                                          (string-append "-I " s))
+                                        (string-split (getenv "ACLOCAL_PATH")
+                                                      #\:)) " "))
+              (invoke "rm" "-rf" "docs/help/da"))))))
+    (native-inputs (list autoconf
+                         autoconf-archive
+                         automake
+                         gettext-minimal
                          intltool
                          libice
                          libxml2
                          libtool
                          gobject-introspection
                          gtk-doc/stable
+                         mate-common
                          pkg-config
-                         yelp-tools))
+                         yelp-tools
+                         which))
     (inputs (list caja
                   dbus
                   dbus-glib
@@ -336,7 +351,7 @@ Interactive Weather Information Network (IWIN).
      "This package is an extension for the MATE caja file manager
 it allows users to add arbitrary programs and launch them through the popup
 menu of selected files.")
-    (license license:gpl2)))
+    (license license:gpl2+)))
 
 (define-public atril-1.28.2
   (package
