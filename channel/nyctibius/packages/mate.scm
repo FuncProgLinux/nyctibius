@@ -413,10 +413,10 @@ Interactive Weather Information Network (IWIN).
 	menu of selected files.")
 	    (license license:gpl2+)))
 
-(define-public atril-1.28.2
+(define-public atril-1.28.3
   (package
     (name "atril")
-    (version "1.28.2")
+    (version "1.28.3")
     (source
      (origin
        (method git-fetch)
