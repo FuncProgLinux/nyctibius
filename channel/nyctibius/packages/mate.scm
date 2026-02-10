@@ -663,10 +663,10 @@ assorted menu related utility programs.")
         #~(list (string-append "--sbindir="
                                #$output "/sbin")))))))
 
-(define-public libmateweather-1.28.1
+(define-public libmateweather-1.28.2
   (package
     (name "libmateweather")
-    (version "1.28.1")
+    (version "1.28.2")
     (source
      (origin
        (method git-fetch)
