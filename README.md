@@ -12,14 +12,9 @@ GitHub.
 
 ## News
 
-> [!IMPORTANT]
-> Starting from Dec 1. This channel will merge with the Guix MATE channel, and
-> package development will continue from here. This is to focus on a single
-> channel and be fast with updates on other tools.
->
-> If you still wish to rely on the MATE software available, install this channel
-> and replace all your `use-modules` or `#:use-module` from `(guix-mate packages
-> something)` to `(nyctibius packages something)`
+> The Guix team has accepted me into the MATE team. I take back my words and
+> everything I've said as I was wrong and owe Guix an apology. I'll try to
+> redeem myself by leaving MATE in pristine condition inside GUIX System.
 
 ## Usage
 
