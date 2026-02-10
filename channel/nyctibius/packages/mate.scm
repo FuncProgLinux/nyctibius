@@ -71,6 +71,7 @@
   #:use-module (gnu packages polkit)
   #:use-module (gnu packages pulseaudio)
   #:use-module (gnu packages python)
+  #:use-module (gnu packages python-build)
   #:use-module (gnu packages python-xyz)
   #:use-module (gnu packages tex)
   #:use-module (gnu packages webkit)
@@ -425,7 +426,7 @@ Interactive Weather Information Network (IWIN).
              (commit (string-append "v" version))
              (recursive? #t)))
        (sha256
-        (base32 "09km7v2vak8a0xzg21pc7p195f4lkjl87wyi55cwd7riczf86x9n"))))
+        (base32 "164ijmcx1vxkrahy4x1y6zrm4xsaj162x4jcixvqkrm5hf17zqnb"))))
     (build-system glib-or-gtk-build-system)
     (arguments
      (list
@@ -448,11 +449,6 @@ Interactive Weather Information Network (IWIN).
                    mathjax-path))) #t))
           (add-after 'unpack 'fix-introspection-install-dir
             (lambda _
-              (setenv "ACLOCAL_FLAGS"
-                      (string-join (map (lambda (s)
-                                          (string-append "-I " s))
-                                        (string-split (getenv "ACLOCAL_PATH")
-                                                      #\:)) " "))
               (setenv "NOCONFIGURE" "yes")
               (invoke "bash" "autogen.sh")
               (substitute* '("configure")
@@ -859,7 +855,7 @@ for the MATE desktop environment.")
     (version (string-append (package-version mate-desktop) "-3"))
     (propagated-inputs (modify-inputs (package-propagated-inputs mate)
                          (replace "mate-applets" mate-applets-1.28.1)
-                         (replace "atril" atril-1.28.2)
+                         (replace "atril" atril-1.28.3)
                          (replace "mate-panel" mate-panel-1.28.7)
                          (replace "mate-polkit" mate-polkit-1.28.1-1)
                          (replace "mate-menus" mate-menus-1.28.1)
@@ -875,6 +871,8 @@ for the MATE desktop environment.")
                                   mate-control-center-1.28.0-1)
                          (replace "marco"
                                   marco-1.28.2)
+                         (replace "pluma"
+                                  pluma-1.28.1)
                          ;; Ubuntu MATE Packages
                          (append brisk-menu)
                          (append mate-tweak)
