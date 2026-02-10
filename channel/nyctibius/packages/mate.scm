@@ -736,7 +736,7 @@ assorted menu related utility programs.")
              (recursive? #t)))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "150wzqd619rggfwhzn4s456rbz9dv5l0qx7x80jcinibwgw7hjjv"))))
+        (base32 "15ajz83na76lcnw9cy1m36f9xfzl1nywk9xwwjax1cklfz63vl0g"))))
     (build-system gnu-build-system)
     (arguments
      (list
@@ -744,13 +744,6 @@ assorted menu related utility programs.")
       #~(list "--with-zoneinfo-dir=/var/empty")
       #:phases
       #~(modify-phases %standard-phases
-          (add-after 'unpack 'preconfigure
-            (lambda _
-              (setenv "ACLOCAL_FLAGS"
-                      (string-join (map (lambda (s)
-                                          (string-append "-I " s))
-                                        (string-split (getenv "ACLOCAL_PATH")
-                                                      #\:)) " "))))
           (add-before 'check 'fix-tzdata-location
             (lambda* (#:key inputs #:allow-other-keys)
               (setenv "TZDIR"
