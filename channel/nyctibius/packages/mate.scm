@@ -105,6 +105,68 @@
        (sha256
         (base32 "1zn1l8k5m4lz9acwvx6fgvkflqfwsq6b6mhyhvwbimj7b2wcsnwh"))))))
 
+(define-public marco-1.28.2
+  (package
+    (name "marco")
+    (version "1.28.2")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+              (url "https://github.com/mate-desktop/marco")
+              (commit (string-append "v" version))
+              (recursive? #t)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1clzznp9q6kriy9hcm0pkikk0jckm9v18hivk0pjxiwgv7in93lk"))))
+    (build-system glib-or-gtk-build-system)
+    (native-inputs
+     (list pkg-config
+           autoconf
+           autoconf-archive
+           automake
+           dconf
+           intltool
+           itstool
+           libtool
+           glib
+           gobject-introspection
+           libxft
+           libxml2
+           gtk-doc/stable
+           mate-common
+           which
+           yelp-tools
+           zenity))
+    (inputs
+     (list gtk+
+           libcanberra
+           libgtop
+           libice
+           libsm
+           libx11
+           libxcomposite
+           libxcursor
+           libxdamage
+           libxext
+           libxfixes
+           libxinerama
+           libxrandr
+           libxrender
+           libxres
+           mate-desktop
+           pango
+           startup-notification))
+    (home-page "https://mate-desktop.org/")
+    (synopsis "Window manager for the MATE desktop")
+    (description
+     "Marco is a minimal X window manager that uses GTK+ for drawing
+window frames.  It is aimed at non-technical users and is designed to integrate
+well with the MATE desktop.  It lacks some features that may be expected by
+some users; these users may want to investigate other available window managers
+for use with MATE or as a standalone window manager.")
+    (license license:gpl2+)))
+
 (define-public mate-panel-1.28.7
   (package
     (name "mate-panel")
