@@ -788,7 +788,7 @@ for the MATE desktop environment.")
                          (replace "mate-menus" mate-menus-1.28.1)
                          (replace "mate-power-manager"
                                   mate-power-manager-1.28.1-1)
-                         (replace "libmateweather" libmateweather-1.28.1)
+                         (replace "libmateweather" libmateweather-1.28.2)
                          (replace "mate-settings-daemon"
                                   mate-settings-daemon-1.28.0-1)
                          (replace "mate-notification-daemon"
@@ -796,6 +796,8 @@ for the MATE desktop environment.")
                          (replace "mate-media" mate-media-1.28.1-1)
                          (replace "mate-control-center"
                                   mate-control-center-1.28.0-1)
+                         (replace "marco"
+                                  marco-1.28.2)
                          ;; Ubuntu MATE Packages
                          (append brisk-menu)
                          (append mate-tweak)
