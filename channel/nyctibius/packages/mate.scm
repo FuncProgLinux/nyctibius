@@ -1,7 +1,7 @@
 ;; mate.scm --- Latest MATE packages for Nyctibius -*- mode: scheme; -*-
 ;;
 ;; SPDX-License-Identifier: GPL-3.0-or-later
-;; Copyright © 2025 Urutau-Ltd <softwarelibre@urutau-ltd.org>
+;; Copyright © 2025-2026 Urutau-Ltd <softwarelibre@urutau-ltd.org>
 ;;
 ;;   , _ ,      _    _            _                     _ _      _
 ;;  ( o o )    | |  | |          | |                   | | |    | |
@@ -201,12 +201,6 @@ for use with MATE or as a standalone window manager.")
                   (add-after 'unpack 'fix-introspection-install-dir
                     (lambda* (#:key outputs #:allow-other-keys)
                       ;; NOTE: v1.28.5 and later require autogen.sh
-                      (setenv "ACLOCAL_FLAGS"
-                              (string-join (map (lambda (s)
-                                                  (string-append "-I " s))
-                                                (string-split (getenv
-                                                               "ACLOCAL_PATH")
-                                                              #\:)) " "))
                       (setenv "NOCONFIGURE" "yes")
                       (invoke "bash" "autogen.sh")
                       (let ((out (assoc-ref outputs "out")))
@@ -353,66 +347,6 @@ Interactive Weather Information Network (IWIN).
      (list (search-path-specification
             (variable "XDG_DATA_DIRS")
             (files '("share")))))))
-
-(define-public caja-actions
-	  (package
-	    (name "caja-actions")
-	    (version "1.28.0")
-	    (source
-	     (origin
-	       (method git-fetch)
-	       (uri (git-reference
-	             (url "https://github.com/mate-desktop/caja-actions")
-	             (commit (string-append "v" version))
-	             (recursive? #t)))
-	       (file-name (git-file-name name version))
-	       (sha256
-	        (base32 "1a21kz5796prdq88a3yjc8jnd6qv8jg5zji43m057ra46qjbjazf"))))
-	    (build-system glib-or-gtk-build-system)
-	    (arguments
-	     (list
-	      #:configure-flags
-	      #~(list (string-append "--with-caja-extdir="
-	                             #$output "/lib/caja/extensions-2.0/"
-	                             "--disable-static"
-	                             "--enable-html-manuals"))
-	      #:phases
-	      #~(modify-phases %standard-phases
-	          (add-after 'unpack 'preconfigure
-	            (lambda _
-	              ;; Danish translations cause a segmentation
-	              ;; fault at compile time. We are removing them
-	              ;; for now.
-	              (delete-file-recursively "docs/help/da"))))))
-	    (native-inputs (list autoconf
-	                         autoconf-archive
-	                         automake
-	                         gettext-minimal
-	                         intltool
-	                         libice
-	                         libxml2
-	                         libtool
-	                         gobject-introspection
-	                         gtk-doc/stable
-	                         mate-common
-	                         pkg-config
-	                         yelp-tools
-	                         which))
-	    (inputs (list caja
-	                  dbus
-	                  dbus-glib
-	                  gtk+
-	                  (list glib "bin")
-	                  libgtop
-	                  libsm
-	                  mate-desktop))
-	    (home-page "https://mate-desktop.org/")
-	    (synopsis "Execute commands from the caja popup menu")
-	    (description
-	     "This package is an extension for the MATE caja file manager
-	it allows users to add arbitrary programs and launch them through the popup
-	menu of selected files.")
-	    (license license:gpl2+)))
 
 (define-public atril-1.28.3
   (package
@@ -849,10 +783,75 @@ for the MATE desktop environment.")
     (description "Pluma is the text editor for the MATE Desktop.")
     (license license:gpl2)))
 
+(define-public eom-1.28.1
+  (package
+    (name "eom")
+    (version "1.28.1")
+    (source
+     (origin
+      (method git-fetch)
+      (uri (git-reference
+	     (url "https://github.com/mate-desktop/eom")
+	     (commit (string-append "v" version))
+	     (recursive? #t)))
+      (file-name (git-file-name name version))
+      (sha256
+       (base32 "0mszgl352rmd1r900vncw9kns1jc8id59k89pkwjpdqjgp7vrhyq"))
+      (patches
+       (search-patches "./nyctibius/packages/patches/eom-fix-girepository.patch"))))
+    (build-system glib-or-gtk-build-system)
+    (arguments
+     (list
+      #:configure-flags
+      #~(list "--enable-python")))
+    (native-inputs
+     (list autoconf
+           autoconf-archive
+           automake
+           dconf
+           gettext-minimal
+           gtk-doc/stable
+           gobject-introspection
+           intltool
+           libtool
+           itstool
+           pkg-config
+           mate-common
+           yelp-tools
+           which))
+    (inputs
+     (list at-spi2-core
+           cairo
+           dconf
+           dbus
+           dbus-glib
+           exempi
+           glib
+           gtk+
+           libcanberra
+           libx11
+           libxext
+           libpeas
+           libxml2
+           libexif
+           libjpeg-turbo
+           (librsvg-for-system)
+           lcms
+           mate-desktop
+           pango
+           shared-mime-info
+           startup-notification
+           zlib))
+    (home-page "https://mate-desktop.org/")
+    (synopsis "Eye of MATE")
+    (description
+     "Eye of MATE is the Image viewer for the MATE Desktop.")
+    (license license:gpl2)))
+
 (define-public mate-extra
   (package
     (inherit mate)
-    (version (string-append (package-version mate-desktop) "-3"))
+    (version (string-append (package-version mate-desktop) "-4"))
     (propagated-inputs (modify-inputs (package-propagated-inputs mate)
                          (replace "mate-applets" mate-applets-1.28.1)
                          (replace "atril" atril-1.28.3)
@@ -873,6 +872,8 @@ for the MATE desktop environment.")
                                   marco-1.28.2)
                          (replace "pluma"
                                   pluma-1.28.1)
+                         (replace "eom"
+                           eom-1.28.1)
                          ;; Ubuntu MATE Packages
                          (append brisk-menu)
                          (append mate-tweak)
