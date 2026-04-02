@@ -16,6 +16,20 @@ GitHub.
 > everything I've said as I was wrong and owe Guix an apology. I'll try to
 > redeem myself by leaving MATE in pristine condition inside GUIX System.
 
+> This channel is not dead though. It will be used for early updates, if you
+> need updates ASAP for some reason, this repository will get updates a week
+> or two sooner than the main Guix repository
+
+## Workflow
+
+Simplified but:
+
+```
+Nyctibius -- [test for one/two weeks] --> Open Merge Request in Guix
+```
+
+Upstreamed packages are removed from here until another update lands.
+
 ## Usage
 
 Organization members can refer the original forge's Wiki for the usage snippet.
@@ -49,7 +63,6 @@ Where possible I try to keep and maintain MATE Desktop software up to date
 and usable in this channel as this is for daily driving. You'll find here
 some missing components from GUIX:
 
-- `caja-actions`
 - `mate-tweak`
 - `brisk-menu`
 - `ayatana` indicator libraries
