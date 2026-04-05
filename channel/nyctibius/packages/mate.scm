@@ -106,6 +106,52 @@
        (sha256
         (base32 "1zn1l8k5m4lz9acwvx6fgvkflqfwsq6b6mhyhvwbimj7b2wcsnwh"))))))
 
+(define-public mate-terminal-1.28.3
+  (package
+    (name "mate-terminal")
+    (version "1.28.3")
+    (source
+     (origin
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/mate-desktop/mate-terminal")
+             (commit (string-append "v" version))
+             (recursive? #t)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "1hf73nrdprkkdc4vn52nk1wvlj5d843ywham70is9pzyrflrh2by"))))
+    (build-system glib-or-gtk-build-system)
+    (native-inputs (list pkg-config
+                         autoconf
+                         autoconf-archive
+                         automake
+                         intltool
+                         itstool
+                         libtool
+                         gobject-introspection
+                         which
+                         libxml2
+                         yelp-tools))
+    (inputs (list dconf
+                  gtk+
+                  libice
+                  libsm
+                  libx11
+                  mate-common
+                  mate-desktop
+                  pango
+                  vte/gtk+-3))
+    (home-page "https://mate-desktop.org/")
+    (synopsis "MATE Terminal Emulator")
+    (description
+     "MATE Terminal is a terminal emulation application that you can
+use to access a shell.  With it, you can run any application that
+is designed to run on VT102, VT220, and xterm terminals.
+MATE Terminal also has the ability to use multiple terminals
+in a single window (tabs) and supports management of different
+configurations (profiles).")
+    (license license:gpl3)))
+
 (define-public marco-1.28.2
   (package
     (name "marco")
@@ -701,20 +747,19 @@ for the MATE desktop environment.")
     (version "1.28.1")
     (source
      (origin
-      (method git-fetch)
-      (uri (git-reference
-	     (url "https://github.com/mate-desktop/pluma")
-	     (commit (string-append "v" version))
-	     (recursive? #t)))
-      (file-name (git-file-name name version))
-      (sha256
-       (base32 "0d241ll8mznknn739f2gpmk2abdkcw08j3c3nppcwif91vfdhz7v"))))
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/mate-desktop/pluma")
+             (commit (string-append "v" version))
+             (recursive? #t)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0d241ll8mznknn739f2gpmk2abdkcw08j3c3nppcwif91vfdhz7v"))))
     (build-system glib-or-gtk-build-system)
     (arguments
      (list
       #:configure-flags
-      #~(list "--enable-python"
-              "--disable-introspection")
+      #~(list "--enable-python" "--disable-introspection")
       #:phases
       #~(modify-phases %standard-phases
           (add-after 'install 'wrap-pluma
@@ -778,63 +823,60 @@ for the MATE desktop environment.")
     (version "1.28.1")
     (source
      (origin
-      (method git-fetch)
-      (uri (git-reference
-	     (url "https://github.com/mate-desktop/eom")
-	     (commit (string-append "v" version))
-	     (recursive? #t)))
-      (file-name (git-file-name name version))
-      (sha256
-       (base32 "0mszgl352rmd1r900vncw9kns1jc8id59k89pkwjpdqjgp7vrhyq"))
-      (patches
-       (search-patches "./nyctibius/packages/patches/eom-fix-girepository.patch"))))
+       (method git-fetch)
+       (uri (git-reference
+             (url "https://github.com/mate-desktop/eom")
+             (commit (string-append "v" version))
+             (recursive? #t)))
+       (file-name (git-file-name name version))
+       (sha256
+        (base32 "0mszgl352rmd1r900vncw9kns1jc8id59k89pkwjpdqjgp7vrhyq"))
+       (patches (search-patches
+                 "./nyctibius/packages/patches/eom-fix-girepository.patch"))))
     (build-system glib-or-gtk-build-system)
     (arguments
      (list
       #:configure-flags
       #~(list "--enable-python")))
-    (native-inputs
-     (list autoconf
-           autoconf-archive
-           automake
-           dconf
-           gettext-minimal
-           gtk-doc/stable
-           gobject-introspection
-           intltool
-           libtool
-           itstool
-           pkg-config
-           mate-common
-           yelp-tools
-           which))
-    (inputs
-     (list at-spi2-core
-           cairo
-           dconf
-           dbus
-           dbus-glib
-           exempi
-           glib
-           gtk+
-           libcanberra
-           libx11
-           libxext
-           libpeas
-           libxml2
-           libexif
-           libjpeg-turbo
-           (librsvg-for-system)
-           lcms
-           mate-desktop
-           pango
-           shared-mime-info
-           startup-notification
-           zlib))
+    (native-inputs (list autoconf
+                         autoconf-archive
+                         automake
+                         dconf
+                         gettext-minimal
+                         gtk-doc/stable
+                         gobject-introspection
+                         intltool
+                         libtool
+                         itstool
+                         pkg-config
+                         mate-common
+                         yelp-tools
+                         which))
+    (inputs (list at-spi2-core
+                  cairo
+                  dconf
+                  dbus
+                  dbus-glib
+                  exempi
+                  glib
+                  gtk+
+                  libcanberra
+                  libx11
+                  libxext
+                  libpeas
+                  libxml2
+                  libexif
+                  libjpeg-turbo
+                  (librsvg-for-system)
+                  lcms
+                  mate-desktop
+                  pango
+                  shared-mime-info
+                  startup-notification
+                  zlib))
     (home-page "https://mate-desktop.org/")
     (synopsis "Eye of MATE")
-    (description
-     "Eye of MATE is the Image viewer for the MATE Desktop.")
+    (description "Eye of MATE is the Image viewer for the MATE Desktop.")
     (license license:gpl2)))
 
 (define-public mate-extra
@@ -863,6 +905,8 @@ for the MATE desktop environment.")
                                   pluma-1.28.1)
                          (replace "eom"
                            eom-1.28.1)
+                         (replace "mate-terminal"
+                           mate-terminal-1.28.3)
                          ;; Ubuntu MATE Packages
                          (append brisk-menu)
                          (append mate-tweak)
