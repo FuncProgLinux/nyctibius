@@ -478,17 +478,6 @@ hypertext navigation, and table-of-contents bookmarks.")
        (sha256
         (base32 "11nxk1f6mpfa4bgx82s1qs288832cd2gbrq2ni0dqby9ml7sbpp8"))))
     (build-system glib-or-gtk-build-system)
-    (arguments
-     (list
-      #:phases
-      #~(modify-phases %standard-phases
-          (add-after 'unpack 'preconfigure
-            (lambda _
-              (setenv "ACLOCAL_FLAGS"
-                      (string-join (map (lambda (s)
-                                          (string-append "-I " s))
-                                        (string-split (getenv "ACLOCAL_PATH")
-                                                      #\:)) " ")))))))
     (native-inputs (list autoconf
                          autoconf-archive
                          automake

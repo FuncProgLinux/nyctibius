@@ -27,8 +27,7 @@ TAG := $(shell date +%Y.%m.%d-%H%M)
 .PHONY: nrepl
 nrepl: ## Starts nrepl-server for Emacs Arei
 	@echo "==> [NYCTIBIUS/DEV]: Starting NREPL for Arei to listen..."
-	@guix shell -D guile-next guile-ares-rs --container -- \
-	guile -L ./channel -c '((@ (ares server) run-nrepl-server))'
+	@guix shell guile-next guile-ares-rs --container --network -- guile -L ./channel -c '((@ (ares server) run-nrepl-server))'
 
 repl: ## Starts a new guix repl
 	@echo "==> [NYCTIBIUS/DEV]: Starting Guix REPL!"
